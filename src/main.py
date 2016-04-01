@@ -12,10 +12,9 @@ if __name__ == '__main__':
 
     pre = Preprocess(sys.argv[1])
     pre.extract()
-    df = pre.get_dataframe()
 
-    graph_list = rolled_graph_list(df)
+    graph_gen = rolled_graph_gen(pre.df)
 
-    degrees = g_stats(graph_list, savename=sys.argv[2])
+    degrees = g_stats(graph_gen, savename=sys.argv[2])
 
 

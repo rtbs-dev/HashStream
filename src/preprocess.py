@@ -34,7 +34,18 @@ class Preprocess:
         self.tags = []  # list of hash-tag lists in the tweets
         self.no_saved_tweets = 0  # keep track of the total number of tweets
         self.no_file_errs = 0  # keep track of total number of dropped tweets
+        self.df = pd.DataFrame()
 
+    @staticmethod
+    def get_dataframe(times, tags):
+        """
+        Pandas has very nice features, including native Timestamp manipulation
+        and other R-like functions for stats. This function will return a DF object
+        that is indexed in the order that tweets arrived, with timestamp and hashtag-
+        list columns."""
+        dic = {"time": pd.to_datetime(times),
+               "hashtags": tags}
+        return pd.DataFrame(data=dic)
 
     def extract(self, overwrite = True):
         """
@@ -60,18 +71,21 @@ class Preprocess:
             self.tags = []  # reset hash-tags
             self.no_saved_tweets = 0
             self.no_file_errs = 0
+            self.df = pd.DataFrame()
 
-        with open(self.input_file,'r') as f:
+        with open(self.input_file, 'r') as f:
 
             er_no = 0
             tweet_no = 0
+            new_times = []
+            new_tags = []
             print 'Parsing JSON objects...'
 
             for n, tweet in enumerate(f):
 
                 if n <= self.no_saved_tweets + self.no_file_errs and (not overwrite):
                     continue  # file has been written before --> skip old tweets and errs
-                # elif n <= self.no_saved_tweets: #TODO add account for err tweets in non-overwrite!
+                # elif n <= self.no_saved_tweets:
                 #     continue  # dont duplicate old tweet data
 
                 dat = json.loads(tweet)  # store tweet in dict
@@ -81,8 +95,8 @@ class Preprocess:
                 As implemented here, tweets without the desired keys will fail gracefully
                 and be tracked. '''
                 try:
-                    self.times += [dat[u'created_at']]
-                    self.tags += [[i[u'text'] for i in dat[u'entities'][u'hashtags']]]
+                    new_times += [dat[u'created_at']]
+                    new_tags += [[i[u'text'] for i in dat[u'entities'][u'hashtags']]]
 
                     tweet_no += 1
                 except KeyError:
@@ -91,18 +105,16 @@ class Preprocess:
                     pass
             self.no_saved_tweets += tweet_no
             self.no_file_errs += er_no
+            self.times += new_times
+            self.tags += new_tags
+            new_df = self.get_dataframe(new_times, new_tags)
+
+            self.df = self.df.append(new_df)
+
             print 'Done!'
             print 'Parsed {:d} Tweets.'.format(tweet_no)
             print 'Dropped {:d} Tweets with missing information.'.format(er_no)
         print "Total tweets in storage: {:d}".format(self.no_saved_tweets)
 
-    def get_dataframe(self):
-        """
-        Pandas has very nice features, including native Timestamp manipulation
-        and other R-like functions for stats. This function will return a DF object
-        that is indexed in the order that tweets arrived, with timestamp and hashtag-
-        list columns."""
-        dic = {"time": pd.to_datetime(self.times),
-               "hashtags": self.tags}
-        return pd.DataFrame(data=dic)
+
 

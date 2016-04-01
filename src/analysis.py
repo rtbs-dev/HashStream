@@ -1,7 +1,7 @@
 import numpy as np
 import networkx as nx
 import pandas as pd
-from itertools import combinations  # native to python
+from itertools import combinations, islice, dropwhile  # native to python
 from pandas.tseries.offsets import *  # for elegantly dealing with timestamps
 
 __author__ = 'tbsexton'
@@ -22,7 +22,7 @@ requested. See documentation in README.md for more.
 """
 
 
-__all__ = ['rolled_graph_list', 'graph_from_set', 'g_stats', 'draw_lifted']
+__all__ = ['rolled_graph_gen', 'g_stats', 'draw_lifted', 'get_graphs']
 
 
 def graph_from_tweet(df, tw_no):
@@ -102,7 +102,15 @@ def draw_lifted(G, pos=None, offset=0.07, fontsize=16):
     plt.show()
 
 
-def rolled_graph_list(df, window=60.):
+# def get_window(df, tw_no, current_time, window):
+#
+#     incl = df.loc[(df.time >= current_time - 10 * Second()) & \
+#                   (df.time <= current_time) & \
+#                   (df.index <= tw_no)]
+#     return incl
+
+
+def rolled_graph_gen(df, window=60., start=0, stop=None):
     """
     Procedurally creates mini-dataframes with only tweets received within [window]
     seconds of the most recent one. Creates the composition graph for each mini-df,
@@ -114,37 +122,56 @@ def rolled_graph_list(df, window=60.):
     :param df: Pandas DataFrame object with tweet hashtag lists and timestamps
     :param window: rolling window size (number of seconds to track tweets)
 
-    :return roll_graphs: list of all window-averaged hashtag co-occurrence graphs
+    :yield roll_graphs: list of all window-averaged hashtag co-occurrence graphs
     """
 
-    roll_graphs = []  # initialize
+    # roll_graphs = []  # initialize
     current_time = df.time.min()  # earliest timestamp in data
 
+    iterator = range(len(df.index))
     try:
         from tqdm import tqdm  # for pretty progress-bar with almost no overhead
-        iter_obj = tqdm(df.itertuples())
+        iter_obj = tqdm(islice(iterator, start, stop))
     except ImportError:
         print "tqdm not installed, loop will not be monitored..."
-        iter_obj = df.itertuples()
+        iter_obj = iterator
 
     for i in iter_obj:
-
-        tw_no, tags, time = i
+        tags, time = df.loc[i]
 
         if time > current_time:  # update 'what time it is'
             current_time = pd.to_datetime(time)
 
         # mini-df of only tweets inside the window
-        incl = df[:tw_no+1]
-        incl = incl[np.logical_and(incl.time >= current_time - window*Second(),
-                                 incl.time <= current_time)]
-
+        # incl = df[:tw_no+1]
+        # incl = incl[np.logical_and(incl.time >= current_time - window*Second(),
+        #                          incl.time <= current_time)]
+        incl = df.loc[(df.time >= current_time - window*Second()) &\
+                      (df.time <= current_time) &\
+                      (df.index <= i)]
         G = graph_from_set(incl)  # create composition graph
         G.graph['time'] = current_time  # timestamp it
         # G.remove_nodes_from(nx.isolates(G))  # drop isolated hashtags
         if nx.number_of_nodes(G) > 1:  # ignore it if size less than 2
-            roll_graphs += [G]
-    return roll_graphs
+            # roll_graphs += [G]
+            yield G
+    # return roll_graphs
+
+
+# def all_graphs(df, window=60.):
+#     # graph_gen = rolled_graph_gen(df)
+#     roll_graphs = [i for i in rolled_graph_gen(df, window=window)]
+#     return roll_graphs
+
+
+def get_graphs(df, start=0, stop=None, window=60.):
+    graph_gen = rolled_graph_gen(df, window=window,
+                                 start=start,
+                                 stop=stop)
+
+    rolled_graphs = [i for i in graph_gen]
+    return rolled_graphs
+
 
 
 def mean_deg(graph):
@@ -155,7 +182,7 @@ def mean_deg(graph):
     return np.mean(graph.degree().values())
 
 
-def g_stats(graph_list, stat_func=mean_deg, savename=None):
+def g_stats(graph_gen, stat_func=mean_deg, savename=None):
     """
     Utility function that returns a time-series of graph statistics for the windowed
     average, when passed a valid NetworkX or custom (i.e. mean_deg()) graph algorithm.
@@ -166,7 +193,9 @@ def g_stats(graph_list, stat_func=mean_deg, savename=None):
     :param save: input path and name of desired save location/file, '/path/to/file.txt'
 
     :return desired statistic for all graphs in list"""
-    stats = [stat_func(i) for i in graph_list]
+    # TODO allow use for either generator OR list!
+    # TODO allow users to pass multiple functions!
+    stats = [stat_func(i) for i in graph_gen]
 
     if savename is not None:  # allow output to file
         np.savetxt(savename, stats, fmt='%.2f')
