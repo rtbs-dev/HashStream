@@ -134,7 +134,7 @@ def rolled_graph_gen(df, window=60., start=0, stop=None):
         iter_obj = tqdm(islice(iterator, start, stop))
     except ImportError:
         print "tqdm not installed, loop will not be monitored..."
-        iter_obj = iterator
+        iter_obj = islice(iterator, start, stop)
 
     for i in iter_obj:
         tags, time = df.loc[i]
