@@ -1,3 +1,6 @@
+import pandas as pd
+import json  # in standard Python
+
 __author__ = 'tbsexton'
 """
 HashStream's preprocessing module, which parses a set of JSON objects in
@@ -11,37 +14,32 @@ analysis being done on the main module side.  You can, for example,
 continuously parse incoming tweets, but only re-calculate the graphs when
 requested, and so on.
 """
-import os.path
-import numpy as np
-import pandas as pd
-import json
 
 
 class Preprocess:
 
     def __init__(self, fname):
-        '''
+        """
         Defines the pre-processing object, and the filename it will
-        monitor in the <../tweet_input/> directory
+        monitor, usually with the <../tweet_input/> directory as prefix.
 
-        :param fname: str, name of tweet file
-        :return: N/A
-        '''
-
+        :param fname: str, name of tweet file (with path).
+        :return: preprocessing object
         """
 
-        """
         self.input_file = fname  # file to track
+        self.source = fname  # store name of data source file
         # self.dat = {}  # dict to access all tweet data if needed
         self.times = []  # timestamp of tweets
         self.tags = []  # list of hash-tag lists in the tweets
-        self.no_saved_tweets = 0
-        self.file_errs = 0
+        self.no_saved_tweets = 0  # keep track of the total number of tweets
+        self.no_file_errs = 0  # keep track of total number of dropped tweets
+
 
     def extract(self, overwrite = True):
-        '''
+        """
         Extracts all desired data from the monitored file.
-        Note that it can over-write current data, ensureing re-do's
+        Note that it can over-write current data, ensuring re-do's
         are possible on a file-level.
 
         Setting the overwrite flag to False will add this extraction
@@ -53,16 +51,17 @@ class Preprocess:
 
         :param overwrite: True or False
         :return: time stamps list, nested hashtags list
-        '''
+        """
 
         if overwrite:
+            # resets all __init__ vars.
             # self.dat = {}  # clear all saved tweets from this stream
             self.times = []  # reset timestamps
             self.tags = []  # reset hash-tags
             self.no_saved_tweets = 0
-            self.file_errs = 0
+            self.no_file_errs = 0
 
-        with open(os.path.join('../tweet_input',self.input_file),'r') as f:
+        with open(self.input_file,'r') as f:
 
             er_no = 0
             tweet_no = 0
@@ -70,8 +69,10 @@ class Preprocess:
 
             for n, tweet in enumerate(f):
 
-                if n <= self.no_saved_tweets: #TODO add account for err tweets in non-overwrite!
-                    continue  # dont duplicate old tweet data
+                if n <= self.no_saved_tweets + self.no_file_errs and (not overwrite):
+                    continue  # file has been written before --> skip old tweets and errs
+                # elif n <= self.no_saved_tweets: #TODO add account for err tweets in non-overwrite!
+                #     continue  # dont duplicate old tweet data
 
                 dat = json.loads(tweet)  # store tweet in dict
 
@@ -87,14 +88,21 @@ class Preprocess:
                 except KeyError:
                     #  count up all exceptions to give to user
                     er_no += 1
-
                     pass
-            self.no_saved_tweets = len(self.times)
+            self.no_saved_tweets += tweet_no
+            self.no_file_errs += er_no
             print 'Done!'
-            if er_no != 0:
-                print 'Parsed {:d} Tweets.'.format(tweet_no)
-                print 'Dropped {:d} Tweets with missing information.'.format(er_no)
+            print 'Parsed {:d} Tweets.'.format(tweet_no)
+            print 'Dropped {:d} Tweets with missing information.'.format(er_no)
+        print "Total tweets in storage: {:d}".format(self.no_saved_tweets)
 
-pre = Preprocess('tweets.txt')
-pre.extract()
-pre.extract(overwrite=False)
+    def get_dataframe(self):
+        """
+        Pandas has very nice features, including native Timestamp manipulation
+        and other R-like functions for stats. This function will return a DF object
+        that is indexed in the order that tweets arrived, with timestamp and hashtag-
+        list columns."""
+        dic = {"time": pd.to_datetime(self.times),
+               "hashtags": self.tags}
+        return pd.DataFrame(data=dic)
+
