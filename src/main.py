@@ -15,6 +15,6 @@ if __name__ == '__main__':
 
     graph_gen = rolled_graph_gen(pre.df)
 
-    degrees = g_stats(graph_gen, savename=sys.argv[2])
+    degrees = g_stats(graph_gen, mean_deg, savename=sys.argv[2])
 
 
