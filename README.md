@@ -15,20 +15,20 @@ This project was completed for the [*Insight Data Engineering*](http://insightda
 ## Installation 
 Simply download and extract the .zip file in your desired directory. Running the included `main.py` file in the `src` module will require two additional arguments in the command, specifically the input data and the name/location of the output.
   
-  `$ python main.py path/to/input.txt path/to/output.txt`
+    $ python main.py path/to/input.txt path/to/output.txt
   
 It will run a simple test, extracting all average degrees for the hashtag graph, rolled over 60s time windows, sourced from the input file. If you've already placed a file called `tweets.txt` in the `tweet_input` folder, you can alternatively just try 
 
-  `$ ./run.sh`
+    $ ./run.sh
 
 from the root directory, which will call `main.py` with some default arguments. 
 
-**Dependencies**
+### Dependencies
 - [Numpy](http://www.numpy.org/): "The fundamental package for scientific computing with Python." -- *array manipulation*
 - [Pandas](http://pandas.pydata.org/pandas-docs/version/0.18.0/): "Package providing fast, flexible, and expressive data structures designed to make working with “relational” or “labeled” data both easy and intuitive" -- *timestamp handling and filtering*
 - [NetworkX](https://networkx.github.io/index.html) : "A Python language software package for the creation, manipulation, and study of the structure, dynamics, and functions of complex networks" -- *graph construction, visualization, and analysis*
 
-**Optional**
+### Optional
 Not having/installing these will not break hashstream, but they can provide a nicer experience while using this module. 
 - [TQDM](https://pypi.python.org/pypi/tqdm): "A Fast, Extensible Progress Meter"
 - [MatPlotLib](http://matplotlib.org/): "python 2D plotting library" -- *native visualization of graphs*
