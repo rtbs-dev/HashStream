@@ -4,7 +4,7 @@ HashStream is a pure python module for analyzing the hashtag graphs from raw Twi
 With a simple user interface, based on scikit-style class calls and process flow, HashStream can be used both for bulk data post processing, and for real-time on-the-fly data extraction. 
 
 ## Introduction
-If you're more of a hands-on learner, why not check out the [tutorial](/src/hashstream_tutorial.ipynb), a Jupyter Notebook you can either view here on GitHub, or download and run for yourself if you have Jupyter installed. 
+If you're more of a hands-on learner, why not check out the [tutorial](/hashstream_tutorial.ipynb), a Jupyter Notebook you can either view here on GitHub, or download and run for yourself if you have Jupyter installed. 
 
 static blah
 
