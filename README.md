@@ -32,7 +32,7 @@ Not having/installing these will not break hashstream, but they can provide a ni
 - [MatPlotLib](http://matplotlib.org/): "python 2D plotting library" -- *native visualization of graphs*
 
 ***
-It is highly recommended that you use Continuum Analytics' Anaconda distribution of Python, which will greatly simplify getting the required packages up and running. With Anaconda, getting ready for Hash stream and everything in the tutorital notebook is as simple as 
+It is highly recommended that you use [Continuum Analytics' Anaconda distribution of Python](https://www.continuum.io/downloads), which will greatly simplify getting the required packages up and running. With Anaconda, getting ready for Hash stream and everything in the tutorital notebook is as simple as 
 
     $ conda install networkx pandas seaborn jupyter
     $ pip install tqdm
