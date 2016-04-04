@@ -42,7 +42,7 @@ def graph_from_tweet(df, tw_no):
 
     Returns
     -------
-    G : NetworkX graph
+    NetworkX graph
         complete graph on tweet's hashtags
     """
 
@@ -115,14 +115,6 @@ def draw_lifted(G, pos=None, offset=0.07, fontsize=16):
     plt.show()
 
 
-# def get_window(df, tw_no, current_time, window):
-#
-#     incl = df.loc[(df.time >= current_time - 10 * Second()) & \
-#                   (df.time <= current_time) & \
-#                   (df.index <= tw_no)]
-#     return incl
-
-
 def rolled_graph_gen(df, window=60., start=0, stop=None):
     """
     Procedurally creates mini-dataframes with only tweets received
@@ -169,6 +161,7 @@ def rolled_graph_gen(df, window=60., start=0, stop=None):
         if time > current_time:  # update 'what time it is'
             current_time = pd.to_datetime(time)
 
+        # slice out the tweets in the time window.
         incl = df.loc[(df.time >= current_time - window*Second()) &\
                       (df.time <= current_time) &\
                       (df.index <= i)]
@@ -183,6 +176,7 @@ def get_graphs(df, start=0, stop=None, window=60.):
                                  start=start,
                                  stop=stop)
 
+    # return a list
     rolled_graphs = [i for i in graph_gen]
     return rolled_graphs
 
@@ -197,7 +191,7 @@ def g_stats(graph_gen, *funcs, **kwargs):
     """
     Utility function that returns a time-series of graph statistics for the windowed
     average, when passed a valid NetworkX or custom (i.e. mean_deg()) graph algorithm.
-    Use on list returned by rolled_graph_list()
+    Use on generator or list.
 
     Parameters
     ----------
@@ -210,10 +204,11 @@ def g_stats(graph_gen, *funcs, **kwargs):
         savename : string, optional
             input path and name of desired save location/file, '/path/to/file.txt'
     """
-    # TODO allow use for either generator OR list!
+
+    # statistics are in columns, observations in rows.
     stats = np.array([[f(i) for f in funcs] for i in graph_gen])
 
-    try:
+    try:  # fail gracefully without savename.
         savename = kwargs['savename']
         print 'saving to '+ savename
     except KeyError:

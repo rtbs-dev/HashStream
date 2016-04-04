@@ -2,6 +2,7 @@ import pandas as pd
 import json  # in standard Python
 
 __author__ = 'tbsexton'
+
 """
 HashStream's preprocessing module, which parses a set of JSON objects in
 a .txt file taken from the Twitter API. This assumes each object (aka each
@@ -23,8 +24,15 @@ class Preprocess:
         Defines the pre-processing object, and the filename it will
         monitor, usually with the <../tweet_input/> directory as prefix.
 
-        :param fname: str, name of tweet file (with path).
-        :return: preprocessing object
+        Parameters
+        ----------
+        fname : str
+            name of tweet file (with path).
+
+        Returns
+        -------
+        self
+            a preprocessing object, which tracks a specific input file
         """
 
         self.input_file = fname  # file to track
@@ -39,10 +47,15 @@ class Preprocess:
     @staticmethod
     def get_dataframe(times, tags):
         """
+        Return a DF object that is indexed in the order that tweets arrived,
+        with timestamp and hashtag-list columns.
+
+        Notes
+        -----
         Pandas has very nice features, including native Timestamp manipulation
-        and other R-like functions for stats. This function will return a DF object
-        that is indexed in the order that tweets arrived, with timestamp and hashtag-
-        list columns."""
+        and other R-like functions for stats.
+
+        """
         dic = {"time": pd.to_datetime(times),
                "hashtags": tags}
         return pd.DataFrame(data=dic)
@@ -50,18 +63,17 @@ class Preprocess:
     def extract(self, overwrite = True):
         """
         Extracts all desired data from the monitored file.
-        Note that it can over-write current data, ensuring re-do's
-        are possible on a file-level.
 
-        Setting the overwrite flag to False will add this extraction
-        to previous data, starting from the tweet number after the
-        last tweet in the previous extraction.
+        Parameters
+        ----------
+        overwrite : bool
+            whether to maintain tweets in current storage or rewrite from beginning of file.
 
-        Exctraction fails gracefully on tweets lacking desired keys
-        (i.e. rate-limit messages, etc.)
+        Notes
+        -----
+        It can over-write current data, ensuring re-do's are possible on a file-level.
 
-        :param overwrite: True or False
-        :return: time stamps list, nested hashtags list
+        Exctraction fails gracefully on tweets lacking desired keys (i.e. rate-limit messages, etc.)
         """
 
         if overwrite:
@@ -74,19 +86,18 @@ class Preprocess:
             self.df = pd.DataFrame()
 
         with open(self.input_file, 'r') as f:
-
+            # initialize
             er_no = 0
             tweet_no = 0
             new_times = []
             new_tags = []
             print 'Parsing JSON objects...'
 
+            # loop over tweets
             for n, tweet in enumerate(f):
 
                 if n <= self.no_saved_tweets + self.no_file_errs and (not overwrite):
                     continue  # file has been written before --> skip old tweets and errs
-                # elif n <= self.no_saved_tweets:
-                #     continue  # dont duplicate old tweet data
 
                 dat = json.loads(tweet)  # store tweet in dict
 
@@ -94,7 +105,7 @@ class Preprocess:
                 We want to only gather metrics on human tweets (i.e. no rate-limit messages)
                 As implemented here, tweets without the desired keys will fail gracefully
                 and be tracked. '''
-                try:
+                try:  # if desired data exists, extract it
                     new_times += [dat[u'created_at']]
                     new_tags += [[i[u'text'] for i in dat[u'entities'][u'hashtags']]]
 
@@ -103,12 +114,13 @@ class Preprocess:
                     #  count up all exceptions to give to user
                     er_no += 1
                     pass
+
+            # update class definitions with new data entry
             self.no_saved_tweets += tweet_no
             self.no_file_errs += er_no
             self.times += new_times
             self.tags += new_tags
             new_df = self.get_dataframe(new_times, new_tags)
-
             self.df = self.df.append(new_df)
 
             print 'Done!'
