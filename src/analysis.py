@@ -215,8 +215,8 @@ def g_stats(graph_gen, *funcs, **kwargs):
 
     try:
         savename = kwargs['savename']
+        print 'saving to '+ savename
     except KeyError:
-        print '''keyword not recognized. Input savename='path/to/file.txt'.'''
         savename = None
 
     if savename is not None:  # allow output to file
