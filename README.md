@@ -31,6 +31,7 @@ Not having/installing these will not break hashstream, but they can provide a ni
 - [TQDM](https://pypi.python.org/pypi/tqdm): "A Fast, Extensible Progress Meter"
 - [MatPlotLib](http://matplotlib.org/): "python 2D plotting library" -- *native visualization of graphs*
 
+Some other imports, which are standard in Python, are the **json** module and the **itertools** module, both of which must be accessable (for data extraction and generator slicing, respectively). 
 ***
 It is highly recommended that you use [Continuum Analytics' Anaconda distribution of Python](https://www.continuum.io/downloads), which will greatly simplify getting the required packages up and running. With Anaconda, getting ready for Hash stream and everything in the tutorital notebook is as simple as 
 
