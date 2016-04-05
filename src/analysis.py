@@ -183,8 +183,9 @@ def get_graphs(df, start=0, stop=None, window=60.):
 
 
 def mean_deg(graph):
-    """Calculate mean degree of graph."""
-    return np.mean(graph.degree().values())
+    """Calculate mean degree of graph. Ignore unconnected nodes."""
+    degs = np.array(graph.degree().values())
+    return np.mean(degs[np.nonzero(degs)])
 
 
 def g_stats(graph_gen, *funcs, **kwargs):
