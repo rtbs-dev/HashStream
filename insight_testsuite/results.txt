@@ -1,0 +1,4 @@
+[Mon Apr  4 17:40:59 MST 2016] 0 of 1 tests passed
+[Mon Apr  4 17:41:28 MST 2016] 1 of 1 tests passed
+[Mon Apr  4 17:42:54 MST 2016] 0 of 1 tests passed
+[Mon Apr  4 17:43:53 MST 2016] 1 of 1 tests passed
